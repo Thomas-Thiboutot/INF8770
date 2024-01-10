@@ -66,14 +66,29 @@ def compress_text_LZW(filenumber: str, is_text: bool, message: str):
 ## References: https://www.geeksforgeeks.org/how-to-manipulate-the-pixel-values-of-an-image-using-python/
 def compress_img_LZW(filenumber: str):
     print("image numéro: " + filenumber)
-    with open("./data/images/image_"+ filenumber +".png", "rb") as image2string: 
-        converted_string = image2string.read() 
-        print(converted_string) 
-    compress_text_LZW(filenumber, False, converted_string)
+    input_image = Image.open("./data/images/image_"+ filenumber +".png") 
+  
+    # Extracting pixel map: 
+    pixel_map = input_image.load() 
     
+    # Extracting the width and height  
+    # of the image: 
+    width, height = input_image.size 
+    message =""
+    for i in range(width): 
+        for j in range(height): 
+            pixel = input_image.getpixel((i, j)) 
+            ##print(f'{pixel[0]:08b}')
+            for i in range(0, len(pixel)):
+                message += "{0:b}".format(pixel[i])
+    print(message)
+    compress_text_LZW(filenumber, False, message)
+     
+    ## print(len(message))      
+
 if __name__ == "__main__":
     ##for i in range(1,6):
     ##    compress_text_LZW(str(i),True, "")
     ##for i in range(1,6):
-    compress_img_LZW(str(1))
+    compress_img_LZW(str(2))
         
