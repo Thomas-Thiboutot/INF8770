@@ -20,7 +20,7 @@ def compress_text_LZW(filenumber: str, is_text: bool, message: str):
             dictbin += ["{:b}".format(nbsymboles)] 
             nbsymboles +=1
             
-    longueurOriginale = np.ceil(np.log2(nbsymboles))*len(Message) if (nbsymboles != 1) else len(Message)    
+    longueurOriginale = max(1,np.ceil(np.log2(nbsymboles)))*len(Message)   
     
     for i in range(nbsymboles):
         dictbin[i] = "{:b}".format(i).zfill(int(np.ceil(np.log2(nbsymboles))))
