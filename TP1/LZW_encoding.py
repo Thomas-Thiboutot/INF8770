@@ -3,7 +3,6 @@ import time
 import numpy as np
 from PIL import Image
 
-## TODO get message from data 
 def compress_text_LZW(filenumber: str, is_text: bool, message: str):
 
     Message = "" if is_text else message
@@ -12,7 +11,6 @@ def compress_text_LZW(filenumber: str, is_text: bool, message: str):
         f = open("./data/textes/texte_"+ filenumber +".txt")
         for line in f.readlines():
             Message += line
-            
     dictsymb =[Message[0]]
     dictbin = ["{:b}".format(0)]
     nbsymboles = 1
@@ -21,12 +19,14 @@ def compress_text_LZW(filenumber: str, is_text: bool, message: str):
             dictsymb += [Message[i]]
             dictbin += ["{:b}".format(nbsymboles)] 
             nbsymboles +=1
-    longueurOriginale = np.ceil(np.log2(nbsymboles))*len(Message)
+            
+    longueurOriginale = np.ceil(np.log2(nbsymboles))*len(Message) if (nbsymboles != 1) else len(Message)    
+    
     for i in range(nbsymboles):
         dictbin[i] = "{:b}".format(i).zfill(int(np.ceil(np.log2(nbsymboles))))
     dictsymb.sort()
     dictionnaire = np.transpose([dictsymb,dictbin])
-    print(dictionnaire) 
+    #print(dictionnaire) 
     i=0;
     MessageCode = []
     longueur = 0
@@ -56,7 +56,7 @@ def compress_text_LZW(filenumber: str, is_text: bool, message: str):
     ## print(MessageCode)
     end = time.perf_counter()
     dictionnaire = np.transpose([dictsymb,dictbin])
-    print(dictionnaire) 
+    #print(dictionnaire) 
     tauxcompression = 1 - longueur/longueurOriginale
     print("Taux de compression :" + str(tauxcompression))
     print("Temps de codage: "+ str(end-start)+'\n')
@@ -67,28 +67,30 @@ def compress_text_LZW(filenumber: str, is_text: bool, message: str):
 def compress_img_LZW(filenumber: str):
     print("image numéro: " + filenumber)
     input_image = Image.open("./data/images/image_"+ filenumber +".png") 
-  
-    # Extracting pixel map: 
-    pixel_map = input_image.load() 
     
-    # Extracting the width and height  
-    # of the image: 
+    num_bands = input_image.getbands()
+
     width, height = input_image.size 
     message =""
     for i in range(width): 
         for j in range(height): 
             pixel = input_image.getpixel((i, j)) 
-            ##print(f'{pixel[0]:08b}')
+            if len(num_bands) == 1:
+                pixel = intToAscii(pixel)
+            else:
+                pixel = list(map(intToAscii, pixel))
+            
             for i in range(0, len(pixel)):
-                message += "{0:b}".format(pixel[i])
-    print(message)
+                message += pixel[i]
     compress_text_LZW(filenumber, False, message)
      
     ## print(len(message))      
+def intToAscii(number):
+    return chr(number)
 
 if __name__ == "__main__":
     ##for i in range(1,6):
     ##    compress_text_LZW(str(i),True, "")
-    ##for i in range(1,6):
-    compress_img_LZW(str(2))
+    for i in range(1,6):
+        compress_img_LZW(str(i))
         
