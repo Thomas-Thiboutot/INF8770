@@ -1,0 +1,60 @@
+fichier: 1
+Longueur = 84
+Longueur originale= 84
+Taux de compression =  0.0
+Temps de compression= 0.00028779999956896063
+
+fichier: 1
+Longueur = 1429129
+Longueur originale= 1560600.0
+Taux de compression =  0.08424388055875942
+Temps de compression= 8.80496260000109
+
+fichier: 2
+Longueur = 118
+Longueur originale= 154.0
+Taux de compression =  0.23376623376623373
+Temps de compression= 0.0003157999999530148
+
+fichier: 2
+Longueur = 131072
+Longueur originale= 131072
+Taux de compression =  0.0
+Temps de compression= 0.12982860000010987
+
+fichier: 3
+Longueur = 131
+Longueur originale= 204.0
+Taux de compression =  0.3578431372549019
+Temps de compression= 0.0005731000001105713
+
+fichier: 3
+Longueur = 3741655
+Longueur originale= 6976256.0
+Taux de compression =  0.46365858707019925
+Temps de compression= 39.3897493000004
+
+fichier: 4
+Longueur = 739
+Longueur originale= 910.0
+Taux de compression =  0.1879120879120879
+Temps de compression= 0.001844399999754387
+
+fichier: 4
+Longueur = 5812390
+Longueur originale= 6000000.0
+Taux de compression =  0.03126833333333334
+Temps de compression= 31.733686900000976
+
+fichier: 5
+Longueur = 5613
+Longueur originale= 8004.0
+Taux de compression =  0.2987256371814093
+Temps de compression= 0.010196200000791578
+
+fichier: 5
+Longueur = 1191542
+Longueur originale= 3911280.0
+Taux de compression =  0.6953575300157493
+Temps de compression= 4.1562142000002495
+

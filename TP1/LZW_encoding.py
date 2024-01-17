@@ -4,13 +4,15 @@ import numpy as np
 from PIL import Image
 
 def compress_text_LZW(filenumber: str, is_text: bool, message: str):
+    
     print(f'fichier: {filenumber}')
     Message = "" if is_text else message
-    
+ 
     if is_text:
         f = open("./data/textes/texte_"+ filenumber +".txt")
         for line in f.readlines():
             Message += line
+            
     dictsymb =[Message[0]]
     dictbin = ["{:b}".format(0)]
     nbsymboles = 1
@@ -55,42 +57,26 @@ def compress_text_LZW(filenumber: str, is_text: bool, message: str):
                 dictbin[j] = "{:b}".format(j).zfill(int(np.ceil(np.log2(nbsymboles))))
     ## print(MessageCode)
     end = time.perf_counter()
-    dictionnaire = np.transpose([dictsymb,dictbin])
+    #dictionnaire = np.transpose([dictsymb,dictbin])
     #print(dictionnaire) 
     
     print(f'Longueur = {longueur}')
     print(f'Longueur originale= {longueurOriginale}')
     print(f'Taux de compression =  {round(1-longueur/longueurOriginale, 4)}')
-    print(f'Temps de compression= {round((end-start)/(10^6), 6)} ms\n')
+    print(f'Temps de compression= {end-start}\n')
 
-## References: https://www.geeksforgeeks.org/how-to-manipulate-the-pixel-values-of-an-image-using-python/
 def compress_img_LZW(filenumber: str):
-    print("image numéro: " + filenumber)
-    input_image = Image.open("./data/images/image_"+ filenumber +".png") 
-    
+    input_image = Image.open(f'./data/images/image_{filenumber}.png') 
+    message = ""
     num_bands = input_image.getbands()
+    pix_data = list(input_image.getdata())
+    print([x for sets in pix_data for x in sets])
+    message = ''.join(list(map(lambda x: chr(x+1), pix_data if len(num_bands)==1 else [x for sets in pix_data for x in sets])))
+    compress_text_LZW(filenumber, False, message)     
 
-    width, height = input_image.size 
-    message =""
-    for i in range(width): 
-        for j in range(height): 
-            pixel = input_image.getpixel((i, j)) 
-            if len(num_bands) == 1:
-                pixel = intToAscii(pixel)
-            else:
-                pixel = list(map(intToAscii, pixel))
-            
-            for i in range(0, len(pixel)):
-                message += pixel[i]
-    compress_text_LZW(filenumber, False, message)
-     
-    ## print(len(message))      
-def intToAscii(number):
-    return chr(number)
 
 if __name__ == "__main__":
-    for i in range(1,6):
-        compress_text_LZW(str(i),True, "")
-    #for i in range(1,6):
-    #    compress_img_LZW(str(i))
+    ##for i in range(1,6):
+        ##compress_text_LZW(str(i),True, "")
+        compress_img_LZW(str(1))
         

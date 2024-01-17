@@ -1,20 +1,25 @@
+## Inspiré du code du cours 
 import numpy as np
 import time
+from PIL import Image
 from anytree import Node, RenderTree, PreOrderIter, AsciiStyle
 
-def compress_txt_Huffman(filenumber: int):
+def compress_txt_Huffman(filenumber: str, is_text: bool, message: str):
+    """Compresses a string using Hoffman compression algorithm"""
+    
     print(f'fichier: {filenumber}')
-    Message = ""
-    f = open("./data/textes/texte_"+ filenumber +".txt")
-    for line in f.readlines():
-        Message += line
-        
+    Message = "" if is_text else message
+    if is_text:
+        f = open("./data/textes/texte_"+ filenumber +".txt")
+        for line in f.readlines():
+            Message += line
+
     #Liste qui sera modifié jusqu'à ce qu'elle contienne seulement la racine de l'arbre
     ArbreSymb =[[Message[0], Message.count(Message[0]), Node(Message[0])]] 
     #dictionnaire obtenu à partir de l'arbre.
     dictionnaire = [[Message[0], '']]
     nbsymboles = 1
-    """Compression begins"""
+    
     start = time.perf_counter()
     #Recherche des feuilles de l'arbre
     for i in range(1,len(Message)):
@@ -23,7 +28,7 @@ def compress_txt_Huffman(filenumber: int):
             dictionnaire += [[Message[i], '']]
             nbsymboles += 1
 
-    longueurOriginale = np.ceil(np.log2(nbsymboles))*len(Message)    
+    longueurOriginale = max(1,np.ceil(np.log2(nbsymboles)))*len(Message)    
     ArbreSymb = sorted(ArbreSymb, key=lambda x: x[1])
     #print(ArbreSymb)
     while len(ArbreSymb) > 1:
@@ -41,12 +46,14 @@ def compress_txt_Huffman(filenumber: int):
         ArbreSymb += [temp]
         #Pour affichage de l'arbre ou des sous-branches
         #print('\nArbre actuel:\n\n')
+        
         #for i in range(len(ArbreSymb)):
         #    if len(ArbreSymb[i][0]) > 1:
+        #        print(ArbreSymb[i][2])
         #        print(RenderTree(ArbreSymb[i][2], style=AsciiStyle()).by_attr())   
         ArbreSymb = sorted(ArbreSymb, key=lambda x: x[1])  
         #print(ArbreSymb)
-        ArbreCodes = Node('')
+    ArbreCodes = Node('')
     noeud = ArbreCodes
     #print([node.name for node in PreOrderIter(ArbreSymb[0][2])])
     parcoursprefix = [node for node in PreOrderIter(ArbreSymb[0][2])]
@@ -92,18 +99,28 @@ def compress_txt_Huffman(filenumber: int):
     for i in range(len(Message)):
         substitution = list(filter(lambda x: x[0] == Message[i], dictionnaire))
         MessageCode += [substitution[0][1]]
-        longueur += len(substitution[0][1]) 
+        longueur += max(1,len(substitution[0][1])) 
         #print(MessageCode)
     end = time.perf_counter()
-    """Compression ends"""
     
     print(f'Longueur = {longueur}')
     print(f'Longueur originale= {longueurOriginale}')
-    print(f'Taux de compression =  {round(1-longueur/longueurOriginale, 4)}')
-    print(f'Temps de compression= {round((end-start)/(10^6), 6)} ms\n')
+    print(f'Taux de compression =  {1-longueur/longueurOriginale}')
+    print(f'Temps de compression= {(end-start)}\n')
+
+def compress_img_Huffman(filenumber: str):
+    """Takes an image indexed by a number and flattens its structure into a single string then calls the compress function for strings"""
+    input_image = Image.open(f'./data/images/image_{filenumber}.png') 
+    message = ""
+    num_bands = input_image.getbands()
+    pix_data = list(input_image.getdata())
+    message = ''.join(list(map(lambda x: chr(x+1), pix_data if len(num_bands)==1 else [x for sets in pix_data for x in sets])))
+    compress_txt_Huffman(filenumber, False, message)
+
 
 if __name__ == "__main__":
 
     for i in range(1,6):
-        compress_txt_Huffman(str(i))
-        
+        compress_txt_Huffman(str(i), True, "")
+        compress_img_Huffman(str(i))
+    
