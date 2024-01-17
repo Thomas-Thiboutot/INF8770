@@ -4,7 +4,7 @@ import numpy as np
 from PIL import Image
 
 def compress_text_LZW(filenumber: str, is_text: bool, message: str):
-
+    print(f'fichier: {filenumber}')
     Message = "" if is_text else message
     
     if is_text:
@@ -57,11 +57,11 @@ def compress_text_LZW(filenumber: str, is_text: bool, message: str):
     end = time.perf_counter()
     dictionnaire = np.transpose([dictsymb,dictbin])
     #print(dictionnaire) 
-    tauxcompression = 1 - longueur/longueurOriginale
-    print("Taux de compression :" + str(tauxcompression))
-    print("Temps de codage: "+ str(end-start)+'\n')
-    print("Longueur = {0}".format(longueur))
-    print("Longueur originale = {0}".format(longueurOriginale))
+    
+    print(f'Longueur = {longueur}')
+    print(f'Longueur originale= {longueurOriginale}')
+    print(f'Taux de compression =  {round(1-longueur/longueurOriginale, 4)}')
+    print(f'Temps de compression= {round((end-start)/(10^6), 6)} ms\n')
 
 ## References: https://www.geeksforgeeks.org/how-to-manipulate-the-pixel-values-of-an-image-using-python/
 def compress_img_LZW(filenumber: str):
@@ -89,8 +89,8 @@ def intToAscii(number):
     return chr(number)
 
 if __name__ == "__main__":
-    ##for i in range(1,6):
-    ##    compress_text_LZW(str(i),True, "")
     for i in range(1,6):
-        compress_img_LZW(str(i))
+        compress_text_LZW(str(i),True, "")
+    #for i in range(1,6):
+    #    compress_img_LZW(str(i))
         
