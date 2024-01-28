@@ -1,0 +1,60 @@
+Texte: 1
+Longueur originale: 84
+Longueur compressee: 74
+Taux de compression: 0.119
+Temps de compression: 0.0004107000131625682
+
+Image: 1
+Longueur originale: 1560600.0
+Longueur compressee: 2078827
+Taux de compression: -0.3321
+Temps de compression: 136.43833460001042
+
+Texte: 2
+Longueur originale: 154.0
+Longueur compressee: 113
+Taux de compression: 0.2662
+Temps de compression: 0.0046242999960668385
+
+Image: 2
+Longueur originale: 131072
+Longueur compressee: 4098
+Taux de compression: 0.9687
+Temps de compression: 0.3478015000000596
+
+Texte: 3
+Longueur originale: 204.0
+Longueur compressee: 182
+Taux de compression: 0.1078
+Temps de compression: 0.0018023000156972557
+
+Image: 3
+Longueur originale: 6976256.0
+Longueur compressee: 3067726
+Taux de compression: 0.5603
+Temps de compression: 800.6630992999999
+
+Texte: 4
+Longueur originale: 910.0
+Longueur compressee: 909
+Taux de compression: 0.0011
+Temps de compression: 0.15088079997804016
+
+Image: 4
+Longueur originale: 6000000.0
+Longueur compressee: 5095800
+Taux de compression: 0.1507
+Temps de compression: 1763.3198779000086
+
+Texte: 5
+Longueur originale: 8004.0
+Longueur compressee: 5884
+Taux de compression: 0.2649
+Temps de compression: 0.02085500000976026
+
+Image: 5
+Longueur originale: 3911280.0
+Longueur compressee: 53287
+Taux de compression: 0.9864
+Temps de compression: 6.834003099997062
+
