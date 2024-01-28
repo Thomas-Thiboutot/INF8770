@@ -3,9 +3,76 @@ import time
 import numpy as np
 from PIL import Image
 
-def compress_text_LZW(filenumber: str, is_text: bool, message: str):
+
+def compress_LZW(message: str):
+    start = time.perf_counter()
     
-    print(f'fichier: {filenumber}')
+    dictsymb = [message[0]]
+    dictbin = ["{:b}".format(0)]
+    nbsymboles = 1
+
+    for i in range(1, len(message)):
+        if message[i] not in dictsymb:
+            dictsymb += [message[i]]
+            dictbin += ["{:b}".format(nbsymboles)] 
+            nbsymboles +=1
+            
+    longueurOriginale = max(1,np.ceil(np.log2(nbsymboles)))*len(message)   
+    
+    for i in range(nbsymboles):
+        dictbin[i] = "{:b}".format(i).zfill(int(np.ceil(np.log2(nbsymboles))))
+    dictsymb.sort()
+    
+    #dictionnaire = np.transpose([dictsymb,dictbin])
+    #print(dictionnaire)
+     
+    i = 0
+    MessageCode = []
+    longueur = 0
+    
+    while i < len(message):
+        precsouschaine = message[i]  # sous-chaine qui sera codé
+        souschaine = message[i]  # sous-chaine qui sera codé + 1 caractère (pour le dictionnaire)
+        
+        # Cherche la plus grande sous-chaine. On ajoute un caractère au fur et à mesure.
+        while souschaine in dictsymb and i < len(message):
+            i += 1
+            precsouschaine = souschaine
+            if i < len(message):  # Si on a pas atteint la fin du message
+                souschaine += message[i]
+          
+        # Codage de la plus grande sous-chaine à l'aide du dictionnaire  
+        codebinaire = [dictbin[dictsymb.index(precsouschaine)]]
+        MessageCode += codebinaire
+        longueur += len(codebinaire[0])
+
+        # Ajout de la sous-chaine codé + symbole suivant dans le dictionnaire.
+        if i < len(message):
+            dictsymb += [souschaine]
+            dictbin += ["{:b}".format(nbsymboles)] 
+            nbsymboles += 1
+
+        # Ajout de 1 bit si requis
+        if np.ceil(np.log2(nbsymboles)) > len(MessageCode[-1]):
+            for j in range(nbsymboles):
+                dictbin[j] = "{:b}".format(j).zfill(int(np.ceil(np.log2(nbsymboles))))
+    
+    end = time.perf_counter()
+    
+    #print(MessageCode)
+    #dictionnaire = np.transpose([dictsymb,dictbin])
+    #print(dictionnaire) 
+    
+    print(f'Longueur = {longueur}')
+    print(f'Longueur originale= {longueurOriginale}')
+    print(f'Taux de compression =  {round(1-longueur/longueurOriginale, 4)}')
+    print(f'Temps de compression= {end-start}\n')
+
+    return
+
+
+def compress_text_LZW(filenumber: str, is_text: bool, message: str):
+    print(f'texte: {filenumber}') if is_text else print(f'image: {filenumber}')
     Message = "" if is_text else message
  
     if is_text:
@@ -29,7 +96,7 @@ def compress_text_LZW(filenumber: str, is_text: bool, message: str):
     dictsymb.sort()
     dictionnaire = np.transpose([dictsymb,dictbin])
     #print(dictionnaire) 
-    i=0;
+    i = 0
     MessageCode = []
     longueur = 0
     start = time.perf_counter()
@@ -64,6 +131,7 @@ def compress_text_LZW(filenumber: str, is_text: bool, message: str):
     print(f'Longueur originale= {longueurOriginale}')
     print(f'Taux de compression =  {round(1-longueur/longueurOriginale, 4)}')
     print(f'Temps de compression= {end-start}\n')
+
 
 def compress_img_LZW(filenumber: str):
     input_image = Image.open(f'./data/images/image_{filenumber}.png') 
