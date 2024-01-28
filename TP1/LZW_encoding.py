@@ -1,9 +1,9 @@
-## Inspiré du code du cours 
 import time
 import numpy as np
 from PIL import Image
 
 
+# Cette fonction est un code modifié du cours qui se trouve sur: https://github.com/gabilodeau/INF8770/blob/master/Codage%20Huffman.ipynb
 def compress_LZW(message: str, returns_statistics=False) -> dict:
     if returns_statistics is None:
         returns_statistics = False
@@ -69,15 +69,15 @@ def compress_LZW(message: str, returns_statistics=False) -> dict:
     return compress_result
 
 
-def compress_text_LZW(filenumber: str, returns_statistics=False):
+def compress_txt_LZW(filenumber: str, returns_statistics=False):
     if returns_statistics is None:
         returns_statistics = False
 
     message = "" 
  
-    f = open("./data/textes/texte_"+ filenumber +".txt")
-    for line in f.readlines():
-        message += line
+    with open("./data/textes/texte_"+ filenumber +".txt") as text:
+        for line in text.readlines():
+            message += line
 
     return compress_LZW(message, returns_statistics)       
 
@@ -98,7 +98,7 @@ if __name__ == "__main__":
     with open("./LZW_results.txt", 'w') as LZW_results:
         for i in range(1, 6):
             start = time.perf_counter()
-            compression_results = compress_text_LZW(str(i), True)
+            compression_results = compress_txt_LZW(str(i), True)
             end = time.perf_counter()
 
             LZW_results.write("Texte: " + str(i) + "\n")
@@ -112,7 +112,7 @@ if __name__ == "__main__":
             compression_results = compress_img_LZW(str(i), True)
             end = time.perf_counter()
 
-            LZW_results.write("Texte: " + str(i) + "\n")
+            LZW_results.write("Image: " + str(i) + "\n")
             LZW_results.write("Longueur originale: " + str(compression_results["longueur_originale"]) + "\n")
             LZW_results.write("Longueur compressee: " + str(compression_results["longueur_compressee"]) + "\n")
             LZW_results.write("Taux de compression: " + str(compression_results["taux_compression"]) + "\n")
