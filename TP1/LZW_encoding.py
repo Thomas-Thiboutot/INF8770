@@ -25,10 +25,8 @@ def compress_LZW(message: str, returns_statistics=False) -> dict:
     for i in range(nbsymboles):
         dictbin[i] = "{:b}".format(i).zfill(int(np.ceil(np.log2(nbsymboles))))
     dictsymb.sort()
-
-    if returns_statistics:
-        compress_result["dictionnaire_initial"] = np.transpose([dictsymb, dictbin])
-     
+    compress_result["dictionnaire_initial"] = np.transpose([dictsymb, dictbin])
+    
     i = 0
     message_code = []
     longueur = 0
