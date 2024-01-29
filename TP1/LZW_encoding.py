@@ -1,13 +1,12 @@
 import time
 import numpy as np
 from PIL import Image
+import get_options
+import sys
 
 
 # Cette fonction est un code modifié du cours qui se trouve sur: https://github.com/gabilodeau/INF8770/blob/master/Codage%20Huffman.ipynb
 def compress_LZW(message: str, returns_statistics=False) -> dict:
-    if returns_statistics is None:
-        returns_statistics = False
-
     compress_result = {}
 
     dictsymb = [message[0]]
@@ -70,11 +69,7 @@ def compress_LZW(message: str, returns_statistics=False) -> dict:
 
 
 def compress_txt_LZW(filenumber: str, returns_statistics=False):
-    if returns_statistics is None:
-        returns_statistics = False
-
     message = "" 
- 
     with open("./data/textes/texte_"+ filenumber +".txt") as text:
         for line in text.readlines():
             message += line
@@ -83,9 +78,6 @@ def compress_txt_LZW(filenumber: str, returns_statistics=False):
 
 
 def compress_img_LZW(filenumber: str, returns_statistics=False):
-    if returns_statistics is None:
-        returns_statistics = False
-
     input_image = Image.open(f'./data/images/image_{filenumber}.png') 
     num_bands = input_image.getbands()
     pix_data = list(input_image.getdata())
@@ -95,26 +87,29 @@ def compress_img_LZW(filenumber: str, returns_statistics=False):
 
 
 if __name__ == "__main__":
+    return_statistics, *opts = get_options.get_options_from_cmd(sys.argv)
     with open("./LZW_results.txt", 'w') as LZW_results:
         for i in range(1, 6):
             start = time.perf_counter()
-            compression_results = compress_txt_LZW(str(i), True)
+            compression_results = compress_txt_LZW(str(i), return_statistics)
             end = time.perf_counter()
 
             LZW_results.write("Texte: " + str(i) + "\n")
-            LZW_results.write("Longueur originale: " + str(compression_results["longueur_originale"]) + "\n")
-            LZW_results.write("Longueur compressee: " + str(compression_results["longueur_compressee"]) + "\n")
-            LZW_results.write("Taux de compression: " + str(compression_results["taux_compression"]) + "\n")
-            LZW_results.write("Temps de compression: " + str((end - start)) + "\n")
-            LZW_results.write("\n")
+            if return_statistics:
+                LZW_results.write("Longueur originale: " + str(compression_results["longueur_originale"]) + "\n")
+                LZW_results.write("Longueur compressee: " + str(compression_results["longueur_compressee"]) + "\n")
+                LZW_results.write("Taux de compression: " + str(compression_results["taux_compression"]) + "\n")
+                LZW_results.write("Temps de compression: " + str((end - start)) + "\n")
+                LZW_results.write("\n")
 
             start = time.perf_counter()
-            compression_results = compress_img_LZW(str(i), True)
+            compression_results = compress_img_LZW(str(i), return_statistics)
             end = time.perf_counter()
 
             LZW_results.write("Image: " + str(i) + "\n")
-            LZW_results.write("Longueur originale: " + str(compression_results["longueur_originale"]) + "\n")
-            LZW_results.write("Longueur compressee: " + str(compression_results["longueur_compressee"]) + "\n")
-            LZW_results.write("Taux de compression: " + str(compression_results["taux_compression"]) + "\n")
-            LZW_results.write("Temps de compression: " + str((end - start)) + "\n")
-            LZW_results.write("\n")
+            if return_statistics:
+                LZW_results.write("Longueur originale: " + str(compression_results["longueur_originale"]) + "\n")
+                LZW_results.write("Longueur compressee: " + str(compression_results["longueur_compressee"]) + "\n")
+                LZW_results.write("Taux de compression: " + str(compression_results["taux_compression"]) + "\n")
+                LZW_results.write("Temps de compression: " + str((end - start)) + "\n")
+                LZW_results.write("\n")

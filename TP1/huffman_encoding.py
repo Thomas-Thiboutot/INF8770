@@ -2,13 +2,12 @@ import numpy as np
 import time
 from PIL import Image
 from anytree import Node, RenderTree, PreOrderIter, AsciiStyle
-
+import sys
+import getopt
+import get_options
 
 # Cette fonction est un code modifié du cours qui se trouve sur: https://github.com/gabilodeau/INF8770/blob/master/Codage%20LZW.ipynb
-def compress_Huffman(message: str, returns_statistics=False) -> dict:
-    if returns_statistics is None:
-        returns_statistics = False
-    
+def compress_Huffman(message: str, returns_statistics=False) -> dict:    
     compress_results = {}
 
     # Liste qui sera modifié jusqu'à ce qu'elle contienne seulement la racine de l'arbre
@@ -109,8 +108,6 @@ def compress_Huffman(message: str, returns_statistics=False) -> dict:
     
 
 def compress_txt_Huffman(filenumber: str, returns_statistics=False):
-    if returns_statistics is None:
-        returns_statistics = False
 
     message = ""
     with open("./data/textes/texte_"+ filenumber +".txt") as text:
@@ -121,9 +118,6 @@ def compress_txt_Huffman(filenumber: str, returns_statistics=False):
 
 
 def compress_img_Huffman(filenumber: str, returns_statistics=False):
-    if returns_statistics is None:
-        returns_statistics = False
-
     """Takes an image indexed by a number and flattens its structure into a single string then calls the compress function"""
     input_image = Image.open(f'./data/images/image_{filenumber}.png') 
     message = ""
@@ -135,26 +129,31 @@ def compress_img_Huffman(filenumber: str, returns_statistics=False):
 
 
 if __name__ == "__main__":
+    return_statistics, *opts = get_options.get_options_from_cmd(sys.argv)
     with open("./Huffman_results.txt", 'w') as Huffman_results:
-        for i in range(1, 6):
+        for i in range(1, 2):
             start = time.perf_counter()
-            compression_results = compress_txt_Huffman(str(i), True)
+            compression_results = compress_txt_Huffman(str(i), return_statistics)
             end = time.perf_counter()
-
             Huffman_results.write("Texte: " + str(i) + "\n")
-            Huffman_results.write("Longueur originale: " + str(compression_results["longueur_originale"]) + "\n")
-            Huffman_results.write("Longueur compressee: " + str(compression_results["longueur_compressee"]) + "\n")
-            Huffman_results.write("Taux de compression: " + str(compression_results["taux_compression"]) + "\n")
-            Huffman_results.write("Temps de compression: " + str((end - start)) + "\n")
-            Huffman_results.write("\n")
+            Huffman_results.write("Message code: " + str(compression_results["message_code"]) + "\n")
+            if return_statistics: 
+                Huffman_results.write("Longueur originale: " + str(compression_results["longueur_originale"]) + "\n")
+                Huffman_results.write("Longueur compressee: " + str(compression_results["longueur_compressee"]) + "\n")
+                Huffman_results.write("Taux de compression: " + str(compression_results["taux_compression"]) + "\n")
+                Huffman_results.write("Temps de compression: " + str((end - start)) + "\n")
+                Huffman_results.write("\n")
 
             start = time.perf_counter()
-            compression_results = compress_img_Huffman(str(i), True)
+            compression_results = compress_img_Huffman(str(i), return_statistics)
             end = time.perf_counter()
 
             Huffman_results.write("Image: " + str(i) + "\n")
-            Huffman_results.write("Longueur originale: " + str(compression_results["longueur_originale"]) + "\n")
-            Huffman_results.write("Longueur compressee: " + str(compression_results["longueur_compressee"]) + "\n")
-            Huffman_results.write("Taux de compression: " + str(compression_results["taux_compression"]) + "\n")
-            Huffman_results.write("Temps de compression: " + str((end - start)) + "\n")
-            Huffman_results.write("\n")
+            Huffman_results.write("Image code: " + str(compression_results["message_code"]) + "\n")
+            
+            if return_statistics:
+                Huffman_results.write("Longueur originale: " + str(compression_results["longueur_originale"]) + "\n")
+                Huffman_results.write("Longueur compressee: " + str(compression_results["longueur_compressee"]) + "\n")
+                Huffman_results.write("Taux de compression: " + str(compression_results["taux_compression"]) + "\n")
+                Huffman_results.write("Temps de compression: " + str((end - start)) + "\n")
+                Huffman_results.write("\n")
