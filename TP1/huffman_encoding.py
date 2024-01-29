@@ -7,7 +7,7 @@ import getopt
 import get_options
 
 # Cette fonction est un code modifié du cours qui se trouve sur: https://github.com/gabilodeau/INF8770/blob/master/Codage%20LZW.ipynb
-def compress_Huffman(message: str, returns_statistics=False) -> dict:    
+def compress_Huffman(message: str, returns_statistics: bool) -> dict:    
     compress_results = {}
 
     # Liste qui sera modifié jusqu'à ce qu'elle contienne seulement la racine de l'arbre
@@ -107,7 +107,7 @@ def compress_Huffman(message: str, returns_statistics=False) -> dict:
     return compress_results
     
 
-def compress_txt_Huffman(filenumber: str, returns_statistics=False):
+def compress_txt_Huffman(filenumber: str, returns_statistics: bool):
 
     message = ""
     with open("./data/textes/texte_"+ filenumber +".txt") as text:
@@ -117,7 +117,7 @@ def compress_txt_Huffman(filenumber: str, returns_statistics=False):
     return compress_Huffman(message, returns_statistics)
 
 
-def compress_img_Huffman(filenumber: str, returns_statistics=False):
+def compress_img_Huffman(filenumber: str, returns_statistics: bool):
     """Takes an image indexed by a number and flattens its structure into a single string then calls the compress function"""
     input_image = Image.open(f'./data/images/image_{filenumber}.png') 
     message = ""
@@ -129,14 +129,17 @@ def compress_img_Huffman(filenumber: str, returns_statistics=False):
 
 
 if __name__ == "__main__":
-    return_statistics, *opts = get_options.get_options_from_cmd(sys.argv)
-    with open("./Huffman_results.txt", 'w') as Huffman_results:
-        for i in range(1, 2):
+    return_statistics: bool = get_options.get_options_from_cmd(sys.argv)["return_statistics"]
+
+    with open("./Huffman_results.txt", 'w', encoding='utf-8') as Huffman_results:
+        for i in range(1, 6):
             start = time.perf_counter()
             compression_results = compress_txt_Huffman(str(i), return_statistics)
             end = time.perf_counter()
             Huffman_results.write("Texte: " + str(i) + "\n")
             Huffman_results.write("Message code: " + str(compression_results["message_code"]) + "\n")
+            Huffman_results.write("Dictionnaire: " + str(compression_results["dictionnaire"]) + "\n")
+
             if return_statistics: 
                 Huffman_results.write("Longueur originale: " + str(compression_results["longueur_originale"]) + "\n")
                 Huffman_results.write("Longueur compressee: " + str(compression_results["longueur_compressee"]) + "\n")
@@ -150,6 +153,7 @@ if __name__ == "__main__":
 
             Huffman_results.write("Image: " + str(i) + "\n")
             Huffman_results.write("Image code: " + str(compression_results["message_code"]) + "\n")
+            Huffman_results.write("Dictionnaire: " + str(compression_results["dictionnaire"]) + "\n")
             
             if return_statistics:
                 Huffman_results.write("Longueur originale: " + str(compression_results["longueur_originale"]) + "\n")
