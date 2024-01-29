@@ -16,5 +16,5 @@ def get_options_from_cmd(argv):
             print(arg_help)  # print the help message
             sys.exit(2)
         elif opt in ("-s", "--print_statistics"):
-            options["return_statistics"] = True     
+            options["return_statistics"] = True
     return options
