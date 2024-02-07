@@ -17,18 +17,20 @@ def kl_transform(image_name: str):
     Args:
         image_name (str): The name of the image to transform
     """
-    imagelue = cv.imread('./data/{image}.png'.format(image=image_name))
-    imagelue = cv.cvtColor(imagelue, cv.COLOR_BGR2RGB)
-    image = imagelue.astype('double')
-    rgb_mean = np.mean(image, axis=(0, 1), keepdims=True)
-    cov_rgb = np.zeros((3, 3), dtype='double')
+    image = cv.imread('./data/{image}.png'.format(image=image_name))
+    image = cv.cvtColor(image, cv.COLOR_BGR2RGB)
+    rgb_mean = np.squeeze(np.mean(image, axis=(0,1), keepdims=True))
     vec_temp = image - rgb_mean
     vec_temp_rearranged = rearrange(vec_temp, 'h w c -> c (h w)')
     vec_prod_temp = np.dot(
         vec_temp_rearranged, np.transpose(vec_temp_rearranged),
     )
-    cov_rgb = np.add(cov_rgb, vec_prod_temp)
-    cov_rgb = cov_rgb / (len(image)*len(image[0]))
+    rgb_mean_temp = np.dot(rgb_mean.reshape(3,1), np.transpose(rgb_mean.reshape(3,1)))
+    cov_rgb = np.zeros((3, 3), dtype='double')
+    cov_rgb = vec_prod_temp - rgb_mean_temp
+    print(cov_rgb)
+    cov_rgb = cov_rgb / (len(image[1])*len(image[0]))
+    
     _, eigvec = la.eig(cov_rgb)
     eigvec = np.transpose(eigvec)
     eigvec_removed = np.copy(eigvec)
@@ -38,7 +40,7 @@ def kl_transform(image_name: str):
         eigvec_removed,
         rearrange(np.subtract(vec_temp, rgb_mean), 'h w c -> c (h w)'),
     )
-    # image_kl_r = rearrange(image_kl, 'c (h w) -> h w c', w=len(image[1]))
+    image_kl_r = rearrange(image_kl, 'c (h w) -> h w c', w=len(image[1]))
     inv_eigvec_removed = la.pinv(eigvec_removed)
     image_rebuilt = np.copy(image)
     image_rebuilt = np.dot(inv_eigvec_removed, image_kl)
@@ -47,7 +49,7 @@ def kl_transform(image_name: str):
     )
     imageout = np.clip(image_rebuilt, 0, MAX_RGB)
     imageout = imageout.astype('uint8')
-    print(imageout)
+    print(imageout.shape)
 
 
 def quantization(num: int, nbbits: int):
