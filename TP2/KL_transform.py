@@ -10,8 +10,8 @@ def kl_transform(image_name: str):
     RGB_mean = np.mean(image, axis=(0,1), keepdims=True)
     covRGB = np.zeros((3,3), dtype = "double")
     vecTemp = image - RGB_mean
-    vecTemp = rearrange(vecTemp, 'h w c -> c (h w)')
-    vecProdTemp = np.dot(vecTemp,np.transpose(vecTemp))
+    vecTemp_rearranged = rearrange(vecTemp, 'h w c -> c (h w)')
+    vecProdTemp = np.dot(vecTemp_rearranged,np.transpose(vecTemp_rearranged))
     covRGB = np.add(covRGB,vecProdTemp)
     nbPixels = len(image)*len(image[0])  
     covRGB = covRGB / nbPixels
@@ -20,7 +20,10 @@ def kl_transform(image_name: str):
     eigvec_removed = np.copy(eigvec)
     axe_to_remove = np.argmin(LA.norm(eigvec, axis=0))
     eigvec_removed[axe_to_remove,:] = [0.0,0.0,0.0]
-    print(eigvec_removed)
+    d = np.subtract(vecTemp,RGB_mean)
+    imageKL = np.dot(eigvec_removed,rearrange(d, 'h w c -> c (h w)'))
+    imageKL_r = rearrange(imageKL, 'c (h w) -> h w c', w=len(image[1]))
+    print(imageKL_r[10][10][:])
     
  
  
