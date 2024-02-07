@@ -3,7 +3,6 @@ import sys
 
 from einops import rearrange
 import numpy as np
-from matplotlib import pyplot as py
 from numpy import linalg as la
 import cv2 as cv
 
@@ -16,21 +15,23 @@ def kl_transform(image_name: str):
 
     Args:
         image_name (str): The name of the image to transform
+
+    Returns:
+        _type_: Returns the image after compression and decompression
     """
     image = cv.imread('./data/{image}.png'.format(image=image_name))
     image = cv.cvtColor(image, cv.COLOR_BGR2RGB)
-    rgb_mean = np.squeeze(np.mean(image, axis=(0,1), keepdims=True))
-    vec_temp = image - rgb_mean
+    rgb_mean = np.mean(image, axis=(0, 1), keepdims=True)
+    vec_temp = image - np.squeeze(rgb_mean)
     vec_temp_rearranged = rearrange(vec_temp, 'h w c -> c (h w)')
     vec_prod_temp = np.dot(
         vec_temp_rearranged, np.transpose(vec_temp_rearranged),
     )
-    rgb_mean_temp = np.dot(rgb_mean.reshape(3,1), np.transpose(rgb_mean.reshape(3,1)))
+    rgb_mean_reshaped = np.squeeze(rgb_mean).reshape(3, 1)
+    rgb_mean_temp = np.dot(rgb_mean_reshaped, np.transpose(rgb_mean_reshaped))
     cov_rgb = np.zeros((3, 3), dtype='double')
     cov_rgb = vec_prod_temp - rgb_mean_temp
-    print(cov_rgb)
-    cov_rgb = cov_rgb / (len(image[1])*len(image[0]))
-    
+    cov_rgb = cov_rgb / (image.shape[0] * image.shape[1])
     _, eigvec = la.eig(cov_rgb)
     eigvec = np.transpose(eigvec)
     eigvec_removed = np.copy(eigvec)
@@ -40,16 +41,13 @@ def kl_transform(image_name: str):
         eigvec_removed,
         rearrange(np.subtract(vec_temp, rgb_mean), 'h w c -> c (h w)'),
     )
-    image_kl_r = rearrange(image_kl, 'c (h w) -> h w c', w=len(image[1]))
     inv_eigvec_removed = la.pinv(eigvec_removed)
     image_rebuilt = np.copy(image)
     image_rebuilt = np.dot(inv_eigvec_removed, image_kl)
     image_rebuilt = rearrange(
         image_rebuilt, 'c (h w) -> h w c', w=len(image[1]),
     )
-    imageout = np.clip(image_rebuilt, 0, MAX_RGB)
-    imageout = imageout.astype('uint8')
-    print(imageout.shape)
+    return np.clip(image_rebuilt, 0, MAX_RGB).astype('uint8')
 
 
 def quantization(num: int, nbbits: int):
@@ -66,4 +64,4 @@ def quantization(num: int, nbbits: int):
 
 
 if __name__ == '__main__':
-    kl_transform(sys.argv[1])
+    kl_image = kl_transform(sys.argv[1])
