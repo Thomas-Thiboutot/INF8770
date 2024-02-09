@@ -5,12 +5,12 @@ from einops import rearrange
 import numpy as np
 from numpy import linalg as la
 import cv2 as cv
+import argparse
 
 
 MAX_RGB = 255
 
-
-def kl_transform(image_name: str):
+def kl_transform(image_name: str, r: int, g: int, b: int):
     """Apply the KL transformation on png images.
 
     Args:
@@ -21,6 +21,7 @@ def kl_transform(image_name: str):
     """
     image = cv.imread('./data/{image}.png'.format(image=image_name))
     image = cv.cvtColor(image, cv.COLOR_BGR2RGB)
+    image = np.apply_along_axis(lambda channels: quantization(channels, [r, g, b]) , 2, image)
     rgb_mean = np.mean(image, axis=(0, 1), keepdims=True)
     vec_temp = image - np.squeeze(rgb_mean)
     vec_temp_rearranged = rearrange(vec_temp, 'h w c -> c (h w)')
@@ -50,18 +51,34 @@ def kl_transform(image_name: str):
     return np.clip(image_rebuilt, 0, MAX_RGB).astype('uint8')
 
 
-def quantization(num: int, nbbits: int):
+def quantization(num: [int], nb_bits: [int]):
     """Quantize the pixel to a given number of bits.
 
     Args:
         num (int): The number to quantize
-        nbbits (int): The number of bits to quantized to the given number
+        nb_bits (int): The number of bits to quantized to the given number
 
     Returns:
         _type_: Returns the step for the correct number of bits
     """
-    return round(num / (2**nbbits))
+    for i, channel in enumerate(num):
+        step = (MAX_RGB + 1)/(2**nb_bits[i])
+        num[i] = int(round(channel / step)*step)
+    return num
 
 
 if __name__ == '__main__':
-    kl_image = kl_transform(sys.argv[1])
+    parser = argparse.ArgumentParser(
+        prog='kl_transform',
+        description='Applies a kl transformation to an png image',
+        epilog='--------------------------------'
+    )
+    parser.add_argument('-i', '--image_name')
+    parser.add_argument('-r', '--red', type=int)
+    parser.add_argument('-g', '--green', type=int)
+    parser.add_argument('-b', '--blue', type=int)
+    args = parser.parse_args()
+    kl_image = kl_transform(args.image_name, args.red, args.green, args.blue)
+    cv.imshow('new_k1.png', kl_image)
+    cv.waitKey(0)
+    cv.destroyAllWindows()
