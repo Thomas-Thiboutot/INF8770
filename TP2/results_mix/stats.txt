@@ -1,0 +1,101 @@
+These are the stats for the mix 4:4:4 quantification in RGB basis:
+k1.pngk1.png PSNR: 24.423220667300146
+k1.pngk1.png SSIM: 0.9080009517362876 
+k1.pngk1.png Compression rate: 0.3562429702843356
+
+k1.pngk2.png PSNR: 26.79802225822186
+k1.pngk2.png SSIM: 0.5258192402634668 
+k1.pngk2.png Compression rate: 0.4289460292226219
+
+k1.pngk3.png PSNR: 24.043353477746248
+k1.pngk3.png SSIM: 0.8700994324415562 
+k1.pngk3.png Compression rate: 0.3363131405806585
+
+k1.pngk4.png PSNR: 23.75237068915517
+k1.pngk4.png SSIM: 0.8752020552678833 
+k1.pngk4.png Compression rate: 0.3356343944202788
+
+k1.pngk5.png PSNR: 23.2533301244259
+k1.pngk5.png SSIM: 0.7908918123534457 
+k1.pngk5.png Compression rate: 0.2739975387959278
+
+k2.pngk1.png PSNR: 24.365380938445703
+k2.pngk1.png SSIM: 0.9059889832845874 
+k2.pngk1.png Compression rate: 0.3190666285920754
+
+k2.pngk2.png PSNR: 26.797849259853635
+k2.pngk2.png SSIM: 0.5246432824242068 
+k2.pngk2.png Compression rate: 0.4430704431496372
+
+k2.pngk3.png PSNR: 24.060161732518253
+k2.pngk3.png SSIM: 0.8583032164793707 
+k2.pngk3.png Compression rate: 0.3403939300564686
+
+k2.pngk4.png PSNR: 23.823992564744174
+k2.pngk4.png SSIM: 0.8745186879322229 
+k2.pngk4.png Compression rate: 0.3469393721839073
+
+k2.pngk5.png PSNR: 23.179517597964253
+k2.pngk5.png SSIM: 0.7883914308731229 
+k2.pngk5.png Compression rate: 0.25636476962170973
+
+k3.pngk1.png PSNR: 24.00379528889722
+k3.pngk1.png SSIM: 0.901671512084279 
+k3.pngk1.png Compression rate: 0.3528687067654275
+
+k3.pngk2.png PSNR: 26.042725973242156
+k3.pngk2.png SSIM: 0.5086304107032081 
+k3.pngk2.png Compression rate: 0.37428450332835195
+
+k3.pngk3.png PSNR: 24.17257516628257
+k3.pngk3.png SSIM: 0.8511581479745942 
+k3.pngk3.png Compression rate: 0.3894003339876907
+
+k3.pngk4.png PSNR: 23.84827561402272
+k3.pngk4.png SSIM: 0.8662003270965153 
+k3.pngk4.png Compression rate: 0.35414683693435856
+
+k3.pngk5.png PSNR: 23.465985143673297
+k3.pngk5.png SSIM: 0.771812765400102 
+k3.pngk5.png Compression rate: 0.4180099407073564
+
+k4.pngk1.png PSNR: 23.80232435784591
+k4.pngk1.png SSIM: 0.9064406880398824 
+k4.pngk1.png Compression rate: 0.33635055043037887
+
+k4.pngk2.png PSNR: 25.180700346387752
+k4.pngk2.png SSIM: 0.4932062743832184 
+k4.pngk2.png Compression rate: 0.37043039058822147
+
+k4.pngk3.png PSNR: 24.23186199737831
+k4.pngk3.png SSIM: 0.8573302577748506 
+k4.pngk3.png Compression rate: 0.380538234896982
+
+k4.pngk4.png PSNR: 24.111870599739625
+k4.pngk4.png SSIM: 0.8750565744899433 
+k4.pngk4.png Compression rate: 0.3658113216536887
+
+k4.pngk5.png PSNR: 23.658645854673736
+k4.pngk5.png SSIM: 0.7776302277901079 
+k4.pngk5.png Compression rate: 0.40411053043742307
+
+k5.pngk1.png PSNR: 23.77001823364771
+k5.pngk1.png SSIM: 0.8970255050497342 
+k5.pngk1.png Compression rate: 0.36024313346115516
+
+k5.pngk2.png PSNR: 26.092689519109342
+k5.pngk2.png SSIM: 0.5148820298430759 
+k5.pngk2.png Compression rate: 0.3694932604356555
+
+k5.pngk3.png PSNR: 24.122319051999387
+k5.pngk3.png SSIM: 0.8404724515314114 
+k5.pngk3.png Compression rate: 0.39256479234251856
+
+k5.pngk4.png PSNR: 23.909048757459047
+k5.pngk4.png SSIM: 0.868747434039534 
+k5.pngk4.png Compression rate: 0.35455832079931826
+
+k5.pngk5.png PSNR: 23.44943674273191
+k5.pngk5.png SSIM: 0.7742902138427578 
+k5.pngk5.png Compression rate: 0.4191973917629573
+

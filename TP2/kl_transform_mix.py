@@ -14,7 +14,7 @@ DIR_LIST = os.listdir('./data')
 MAX_RGB = 255
 
 
-def kl_transform(image_name: str, y: int, u: int, v: int, basis: str):
+def kl_transform(image1_name: str,image2_name: str):
     """Apply the KL transformation on images.
 
     Args:
@@ -26,12 +26,8 @@ def kl_transform(image_name: str, y: int, u: int, v: int, basis: str):
     Returns:
         np.ndarray: Returns the image after compression and decompression
     """
-    im = cv.imread('./data/{image}'.format(image=image_name))
-    image = cv.cvtColor(im, cv.COLOR_BGR2RGB)
-    if basis == 'yuv':
-        image = cv.cvtColor(image, cv.COLOR_RGB2YUV).astype('double')
-        
-    image = np.apply_along_axis(lambda channels: quantization(channels, [y, u, v]), 2, image)
+    image1 = cv.imread('./data/{image}'.format(image=image1_name))
+    image = cv.cvtColor(image1, cv.COLOR_BGR2RGB)
     
     mean = np.squeeze(np.mean(image, axis=(0,1), keepdims=True))
     
@@ -48,25 +44,28 @@ def kl_transform(image_name: str, y: int, u: int, v: int, basis: str):
     eigvec_removed = np.copy(eigvec)
     eigvec_removed[np.argmin(eigval),:] = [0.0,0.0,0.0]
     
-    image_kl = np.copy(image)
-    image_kl = np.dot(eigvec_removed, vec_temp_reshaped)
+    image2 = cv.imread('./data/{image}'.format(image=image2_name))
+    image2 = cv.cvtColor(image2, cv.COLOR_BGR2RGB)
+    image2 = np.apply_along_axis(lambda channels: quantization(channels, [8, 8, 8]), 2, image2)
+    mean2 = np.squeeze(np.mean(image2, axis=(0,1), keepdims=True))
+    vec_temp2 = image2 - mean2
+    vec_temp2 = rearrange(vec_temp2, 'h w c -> c (h w)')
+    image_kl = np.copy(image2)
+    image_kl = np.dot(eigvec_removed, vec_temp2)
     
-    comp_rate = compression_rate(image, image_kl)
+    comp_rate = compression_rate(image2, image_kl)
     
     inv_eigvec_removed = la.pinv(eigvec_removed)
-    rebuilt_image = np.copy(image)
-    rebuilt_image = rearrange(np.dot(inv_eigvec_removed, image_kl) + np.reshape(mean, (3,1)), 'c (h w) -> h w c', h = image.shape[0])
-    
-    if basis == 'yuv':
-        rebuilt_image = cv.cvtColor(rebuilt_image.astype('uint8'), cv.COLOR_YUV2RGB)
+    rebuilt_image = np.copy(image2)
+    rebuilt_image = rearrange(np.dot(inv_eigvec_removed, image_kl) + np.reshape(mean2, (3,1)), 'c (h w) -> h w c', h = image2.shape[0])
         
     imageout = cv.cvtColor(rebuilt_image.astype('uint8'), cv.COLOR_RGB2BGR)
     imageout = np.clip(imageout,0,255)
     imageout= imageout.astype('uint8')
     
-    mse = eqm(image, imageout)
+    mse = eqm(image2, imageout)
     p_rate = psnr(mse)
-    s_rate, _ = structural_similarity(image.astype('uint8'), imageout.astype('uint8'), full=True, channel_axis=2)
+    s_rate, _ = structural_similarity(image2.astype('uint8'), imageout.astype('uint8'), full=True, channel_axis=2)
     return (imageout, comp_rate, p_rate, s_rate)
 
 
@@ -135,55 +134,27 @@ def psnr(mse: float):
 
 
 if __name__ == '__main__':
-    parser = argparse.ArgumentParser(
-        prog='kl_transform',
-        description='Applies a kl transformation to an image',
-        epilog='--------------------------------',
-    )
 
-    parser.add_argument('-r', '--red', type=int)
-    parser.add_argument('-g', '--green', type=int)
-    parser.add_argument('-b', '--blue', type=int)
-    parser.add_argument('-c', '--colormode', type=str)
-    args = parser.parse_args()
-
-    path_to_folder = './results_{basis}_{red}_{green}_{blue}'.format(
-        basis=args.colormode,
-        red=args.red,
-        green=args.green,
-        blue=args.blue,
-    )
+    path_to_folder = './results_mix'
 
     if os.path.exists(path_to_folder):
         shutil.rmtree(path_to_folder)
 
     os.mkdir(path_to_folder)
 
-    with open('./results_{basis}_{red}_{green}_{blue}/stats.txt'.format(
-        basis=args.colormode,
-        red=args.red,
-        green=args.green,
-        blue=args.blue,
-    ), 'w') as statistics:
+    with open('./results_mix/stats.txt', 'w') as statistics:
 
-        statistics.write("These are the stats for the {red}_{green}_{blue} quantification in {basis} basis:\n".format(
-            basis=args.colormode,
-            red=args.red,
-            green=args.green,
-            blue=args.blue,
-        ))
+        statistics.write("These are the stats for the mix 4:4:4 quantification in RGB basis:\n")
 
-        for image in DIR_LIST:
-            kl_image, comp_rate, p_rate, s_rate = kl_transform(image, args.red, args.green, args.blue, args.colormode)
-            cv.imwrite('./results_{basis}_{red}_{green}_{blue}/{image_name}'.format(
-                basis=args.colormode,
-                image_name=image,
-                red=args.red,
-                green=args.green,
-                blue=args.blue
-            ), kl_image)
+        for image1 in DIR_LIST:
+            for image2 in DIR_LIST:
+                kl_image, comp_rate, p_rate, s_rate = kl_transform(image1,image2)
+                
+                cv.imwrite('./results_mix/{image_name}'.format(
+                    image_name=image1+image2,
+                ), kl_image)
 
-            statistics.write('{image_name} PSNR: {psnr}\n'.format(image_name=image, psnr=p_rate))
-            statistics.write('{image_name} SSIM: {ssim} \n'.format(image_name=image, ssim=s_rate))
-            statistics.write('{image_name} Compression rate: {compression_rate}\n\n'.format(image_name=image, compression_rate=comp_rate))
+                statistics.write('{image_name} PSNR: {psnr}\n'.format(image_name=image1+image2, psnr=p_rate))
+                statistics.write('{image_name} SSIM: {ssim} \n'.format(image_name=image1+image2, ssim=s_rate))
+                statistics.write('{image_name} Compression rate: {compression_rate}\n\n'.format(image_name=image1+image2, compression_rate=comp_rate))
 
