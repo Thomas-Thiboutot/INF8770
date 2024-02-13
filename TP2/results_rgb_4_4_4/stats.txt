@@ -1,0 +1,21 @@
+These are the stats for the 4_4_4 quantification in rgb basis:
+k1.png PSNR: 24.56891048849498
+k1.png SSIM: 0.8523193016132683 
+k1.png Compression rate: 0.8761570990160152
+
+k2.png PSNR: 27.081787526873033
+k2.png SSIM: 0.44917051122713453 
+k2.png Compression rate: 1.0983994336723242
+
+k3.png PSNR: 24.460430084279334
+k3.png SSIM: 0.7764477994970735 
+k3.png Compression rate: 0.9397647577875344
+
+k4.png PSNR: 24.94522596071155
+k4.png SSIM: 0.7762448988380847 
+k4.png Compression rate: 0.7045719233503648
+
+k5.png PSNR: 23.185233959644197
+k5.png SSIM: 0.6479938333265852 
+k5.png Compression rate: 0.7510370582556203
+

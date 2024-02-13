@@ -14,8 +14,8 @@ DIR_LIST = os.listdir('./data')
 MAX_RGB = 255
 
 
-def kl_transform(image_name: str, r: int, g: int, b: int):
-    """Apply the KL transformation on png images.
+def kl_transform(image_name: str, y: int, u: int, v: int, basis: str):
+    """Apply the KL transformation on images.
 
     Args:
         image_name (str): The name of the image to transform
@@ -28,38 +28,46 @@ def kl_transform(image_name: str, r: int, g: int, b: int):
     """
     im = cv.imread('./data/{image}'.format(image=image_name))
     image = cv.cvtColor(im, cv.COLOR_BGR2RGB)
-    rgb_mean = np.mean(image, axis=(0, 1), keepdims=True)
-    image = np.apply_along_axis(lambda channels: quantization(channels, [r, g, b]), 2, image)
-
-    vec_temp = image - np.squeeze(rgb_mean)
-    vec_temp_rearranged = rearrange(vec_temp, 'h w c -> c (h w)')
-    vec_prod_temp = np.dot(
-        vec_temp_rearranged, np.transpose(vec_temp_rearranged),
-    )
-    rgb_mean_reshaped = np.squeeze(rgb_mean).reshape(3, 1)
-    rgb_mean_temp = np.dot(rgb_mean_reshaped, np.transpose(rgb_mean_reshaped))
-    cov_rgb = np.zeros((3, 3), dtype='double')
-    cov_rgb = vec_prod_temp - rgb_mean_temp
-    cov_rgb = cov_rgb / (image.shape[0] * image.shape[1])
-    eigval, eigvec = la.eig(cov_rgb)
+    if basis == 'yuv':
+        image = cv.cvtColor(image, cv.COLOR_RGB2YUV).astype('double')
+        
+    image = np.apply_along_axis(lambda channels: quantization(channels, [y, u, v]), 2, image)
+    
+    mean = np.squeeze(np.mean(image, axis=(0,1), keepdims=True))
+    
+    cov = np.zeros((3,3), dtype = "double")
+    vec_temp = image - mean
+    vec_temp_reshaped = rearrange(vec_temp, 'h w c -> c (h w)')
+    vec_prod_temp = np.dot(vec_temp_reshaped, np.transpose(vec_temp_reshaped))
+    cov = cov + vec_prod_temp
+    nb_pixels = image.shape[0] * image.shape[1]
+    cov = cov / nb_pixels
+    
+    eigval, eigvec = la.eig(cov)
     eigvec = np.transpose(eigvec)
     eigvec_removed = np.copy(eigvec)
-    eigvec_removed[np.argmin(eigval), :] = [0, 0, 0]
-    image_kl = np.dot(
-        eigvec_removed,
-        rearrange(vec_temp - rgb_mean, 'h w c -> c (h w)'),
-    )
+    eigvec_removed[np.argmin(eigval),:] = [0.0,0.0,0.0]
+    
+    image_kl = np.copy(image)
+    image_kl = np.dot(eigvec_removed, vec_temp_reshaped)
+    
     comp_rate = compression_rate(image, image_kl)
+    
     inv_eigvec_removed = la.pinv(eigvec_removed)
-    image_rebuilt = np.dot(inv_eigvec_removed, image_kl)
-    image_rebuilt = rearrange(
-        image_rebuilt, 'c (h w) -> h w c', w=len(image[1]),
-    )
-    image_rebuilt = image_rebuilt + rgb_mean * 2
-    mse = eqm(image, image_rebuilt)
+    rebuilt_image = np.copy(image)
+    rebuilt_image = rearrange(np.dot(inv_eigvec_removed, image_kl) + np.reshape(mean, (3,1)), 'c (h w) -> h w c', h = image.shape[0])
+    
+    if basis == 'yuv':
+        rebuilt_image = cv.cvtColor(rebuilt_image.astype('uint8'), cv.COLOR_YUV2RGB)
+        
+    imageout = cv.cvtColor(rebuilt_image.astype('uint8'), cv.COLOR_RGB2BGR)
+    imageout = np.clip(imageout,0,255)
+    imageout= imageout.astype('uint8')
+    
+    mse = eqm(image, imageout)
     p_rate = psnr(mse)
-    s_rate, _ = structural_similarity(image.astype('uint8'), image_rebuilt.astype('uint8'), full=True, channel_axis=2)
-    return (np.clip(image_rebuilt, 0, MAX_RGB).astype('uint8'), comp_rate, p_rate, s_rate)
+    s_rate, _ = structural_similarity(image.astype('uint8'), imageout.astype('uint8'), full=True, channel_axis=2)
+    return (imageout, comp_rate, p_rate, s_rate)
 
 
 def compression_rate(original, compressed):
@@ -136,9 +144,11 @@ if __name__ == '__main__':
     parser.add_argument('-r', '--red', type=int)
     parser.add_argument('-g', '--green', type=int)
     parser.add_argument('-b', '--blue', type=int)
+    parser.add_argument('-c', '--colormode', type=str)
     args = parser.parse_args()
 
-    path_to_folder = './results_{red}_{green}_{blue}'.format(
+    path_to_folder = './results_{basis}_{red}_{green}_{blue}'.format(
+        basis=args.colormode,
         red=args.red,
         green=args.green,
         blue=args.blue,
@@ -149,22 +159,24 @@ if __name__ == '__main__':
 
     os.mkdir(path_to_folder)
 
-    with open('./results_{red}_{green}_{blue}/stats.txt'.format(
+    with open('./results_{basis}_{red}_{green}_{blue}/stats.txt'.format(
+        basis=args.colormode,
         red=args.red,
         green=args.green,
         blue=args.blue,
     ), 'w') as statistics:
 
-        statistics.write("These are the stats for the {red}_{green}_{blue} quantification:\n".format(
+        statistics.write("These are the stats for the {red}_{green}_{blue} quantification in {basis} basis:\n".format(
+            basis=args.colormode,
             red=args.red,
             green=args.green,
             blue=args.blue,
         ))
 
         for image in DIR_LIST:
-            kl_image, comp_rate, p_rate, s_rate = kl_transform(image, args.red, args.green, args.blue)
-            kl_image = cv.cvtColor(kl_image, cv.COLOR_RGB2BGR)   
-            cv.imwrite('./results_{red}_{green}_{blue}/{image_name}'.format(
+            kl_image, comp_rate, p_rate, s_rate = kl_transform(image, args.red, args.green, args.blue, args.colormode)
+            cv.imwrite('./results_{basis}_{red}_{green}_{blue}/{image_name}'.format(
+                basis=args.colormode,
                 image_name=image,
                 red=args.red,
                 green=args.green,

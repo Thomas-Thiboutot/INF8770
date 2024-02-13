@@ -1,0 +1,21 @@
+These are the stats for the 4_4_4 quantification in yuv basis:
+k1.png PSNR: 11.21953574423183
+k1.png SSIM: 0.4206258351009325 
+k1.png Compression rate: 0.7917407673679431
+
+k2.png PSNR: 9.237517955383353
+k2.png SSIM: 0.5455989183433627 
+k2.png Compression rate: 1.0725917004096703
+
+k3.png PSNR: 8.320111096775829
+k3.png SSIM: 0.39715593303232644 
+k3.png Compression rate: 0.7156592729927138
+
+k4.png PSNR: 9.19982146365508
+k4.png SSIM: 0.3399643317678593 
+k4.png Compression rate: 0.5960894410927264
+
+k5.png PSNR: 9.347733460357443
+k5.png SSIM: 0.6378768426228604 
+k5.png Compression rate: 0.7839458877976674
+

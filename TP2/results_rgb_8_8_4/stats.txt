@@ -1,0 +1,21 @@
+These are the stats for the 8_8_4 quantification in rgb basis:
+k1.png PSNR: 24.33721250904774
+k1.png SSIM: 0.8784260509827077 
+k1.png Compression rate: 0.4062983040376591
+
+k2.png PSNR: 26.02886302405266
+k2.png SSIM: 0.49058916429547317 
+k2.png Compression rate: 0.534220913895765
+
+k3.png PSNR: 24.36404709001514
+k3.png SSIM: 0.8188840376308747 
+k3.png Compression rate: 0.4742277811756024
+
+k4.png PSNR: 24.19333951955337
+k4.png SSIM: 0.8514181945901438 
+k4.png Compression rate: 0.46934349208766446
+
+k5.png PSNR: 23.431099971237188
+k5.png SSIM: 0.70351606752658 
+k5.png Compression rate: 0.5114244523365801
+

@@ -1,0 +1,21 @@
+These are the stats for the 8_8_8 quantification in yuv basis:
+k1.png PSNR: 11.61839040177453
+k1.png SSIM: 0.4475183226980066 
+k1.png Compression rate: 0.5415401132249561
+
+k2.png PSNR: 9.371762753205067
+k2.png SSIM: 0.5902953531427282 
+k2.png Compression rate: 0.521018140446725
+
+k3.png PSNR: 8.395953041785644
+k3.png SSIM: 0.4206998549616782 
+k3.png Compression rate: 0.3916515178170019
+
+k4.png PSNR: 9.69413558404057
+k4.png SSIM: 0.3842126287655572 
+k4.png Compression rate: 0.39121231628678355
+
+k5.png PSNR: 9.450818065258169
+k5.png SSIM: 0.7044531820595089 
+k5.png Compression rate: 0.2978462637828316
+
