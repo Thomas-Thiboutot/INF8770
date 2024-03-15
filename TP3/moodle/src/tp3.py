@@ -3,9 +3,11 @@ import torch
 import os
 
 
-torch.set_printoptions(precision=1, sci_mode=False)
+torch.set_printoptions(precision=1, sci_mode=False)    
 
 PATH = '../data/mp4/'
+
+
 def create_video_descriptor(filename: str):
     video, _, _ = torchvision.io.read_video(filename)
     histo_video = []
@@ -15,9 +17,23 @@ def create_video_descriptor(filename: str):
         histo_g, _ = torch.histogram(h[1], range=[0,255], bins = 8)
         histo_b, _ = torch.histogram(h[2], range=[0,255], bins = 8)
         histo_image = torch.cat((histo_r, histo_g, histo_b), 0)
+        # print(','.join(map(str, histo_image.tolist())), '\n')
         histo_video.append(histo_image)
     return histo_video
 
+def read_descriptor():
+    db_descriptor = []
+    with open('./db_descriptor.txt') as f:
+        while True:
+            image_descriptor = f.readline()
+            if not image_descriptor:
+                break
+            if image_descriptor != '\n':
+                image_descriptor = image_descriptor.rstrip('\r\n').strip()
+                image_descriptor = image_descriptor.split(',')
+                db_descriptor.append(list(map(float, image_descriptor)))
+    return db_descriptor
+        
 def create_db_descriptor():
     histo_db = []
     for file in os.listdir(PATH):
@@ -26,7 +42,6 @@ def create_db_descriptor():
         
 
 if __name__ == '__main__':
-    print('--------------TP3 Création index---------------')
-    db_descriptor = create_db_descriptor()
-    print(len(db_descriptor))
+    db_descriptor = read_descriptor()
+    print(db_descriptor[0])
     
