@@ -1,7 +1,0 @@
-image,video_pred,minutage_pred
-i000,v001,1.566667
-i001,v050,13.700000
-i002,out,
-i003,out,
-i004,v075,0.166667
-i005,out,

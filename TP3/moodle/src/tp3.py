@@ -12,7 +12,7 @@ torch.set_printoptions(precision=1, sci_mode=False)
 PATH = '../data/mp4/'
 MAX_N_REQUESTS = 1000
 FPS = 30
-COMPRESS_RATIO = 1
+COMPRESS_RATIO = 4
 MS_TO_SEC = 1000
 LENGTH_HISTOGRAM = 24
 
@@ -41,20 +41,6 @@ def create_index():
     print('index created')
     return index, histo_video, end-start
 
-def create_video_descriptor(filename: str):
-    
-    start = time.perf_counter()
-    for idx in range(0, len(videos), COMPRESS_RATIO):
-        image = video[idx].transpose(0, 2).type(dtype=torch.float32)
-        histo_r, _ = torch.histogram(image[0], range=[0, 255], bins=8)
-        histo_g, _ = torch.histogram(image[1], range=[0, 255], bins=8)
-        histo_b, _ = torch.histogram(image[2], range=[0, 255], bins=8)
-        histo_image = torch.cat((histo_r, histo_g, histo_b), 0)
-        histo_video.append(histo_image)
-    end = time.perf_counter()
-    return end-start, histo_video
-
-
 def read_descriptor():
     db_descriptor = []
     with open('./db_descriptor.txt') as f:
@@ -68,7 +54,6 @@ def read_descriptor():
                 db_descriptor.append(list(map(float, image_descriptor)))
     return torch.tensor(db_descriptor)
 
-
 def create_db_descriptor():
     histo_db = []
     indexing_time = 0
@@ -80,28 +65,10 @@ def create_db_descriptor():
     compression_rate = 1 - (1/COMPRESS_RATIO) / 1 
     return indexing_time, compression_rate, histo_db
 
-
 def len_videos():
     for filename in os.listdir(PATH):
         video, _, _ = torchvision.io.read_video(PATH + filename)
         print(f'{len(video)},')
-
-
-def create_dict_videos():
-    videos_length = {}
-    video_id = 0
-    with open('./len_video.txt') as len_list:
-        while True:
-            video_id += 1
-            image_descriptor = len_list.readline()
-            if not image_descriptor:
-                break
-            if image_descriptor != '\n':
-                image_descriptor = image_descriptor.rstrip('\r\n').strip()
-                image_descriptor = image_descriptor.split(',')
-                videos_length[video_id] = int(image_descriptor[0])
-    return videos_length
-
 
 def create_histogram_single_image(filepath: str):
     image = torchvision.io.read_image(filepath).type(dtype=torch.float32)
@@ -130,11 +97,9 @@ def euclidean_distance(tensor1: torch.Tensor, tensor2: torch.Tensor):
     return math.sqrt(torch.sum(torch.square(tensor1 - tensor2)))
 
 if __name__ == '__main__':
-    length_videos = create_dict_videos()
     requests = create_requests(MAX_N_REQUESTS)
     index, descriptor, indexing_time = create_index() 
     print(f'Indexing time: {indexing_time}')
-    #print(f'Compression rate: {compression_rate}')
     
     image_id = [(-1,-1)] * len(requests)
     start = time.perf_counter()
@@ -148,7 +113,7 @@ if __name__ == '__main__':
                 #    image_id[i] = idx * COMPRESS_RATIO
                 #    break
 
-                if cosine_similarity > 0.95:
+                if cosine_similarity > 0.97:
                         if index[jdx][1] >= 1:
                             answer_file.write(
                                 'i{req:03d},v{id:03d},{min:05f}\n'.format(
@@ -159,25 +124,4 @@ if __name__ == '__main__':
                     break
                     
     end = time.perf_counter() 
-    print(f'Search time by image: {(end-start)/len(requests)} ms')
-
-            
-    
-    #with open('answer.csv', 'w') as answer_file:
-    #    answer_file.write('image,video_pred,minutage_pred\n')
-    #    for j, im_id in enumerate(image_id): ## 0 -> 1000
-    #        timing = 0
-    #        minuting = -1
-    #        for video_id, n_image in length_videos.items(): ## 1 -> 100
-    #            timing += n_image
-    #            if im_id <= timing:
-    #                minuting = (n_image - (timing - im_id)) / FPS
-    #                if minuting >= 0:
-    #                    answer_file.write(
-    #                        'i{req:03d},v{id:03d},{min:05f}\n'.format(
-    #                            req=j, id=video_id, min=minuting))
-    #                    break
-    #                else:
-    #                    answer_file.write('i{req:03d},out,\n'.format(req=j))
-    #                    break
-    #            
+    print(f'Search time by image: {(end-start)/len(requests)} ms')        
