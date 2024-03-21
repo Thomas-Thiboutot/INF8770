@@ -1,7 +1,10 @@
-import torchvision
 import torch
+import torchvision
 import os
 import math
+import numpy as np
+import time
+import cv2 as cv
 
 
 torch.set_printoptions(precision=1, sci_mode=False)
@@ -9,19 +12,47 @@ torch.set_printoptions(precision=1, sci_mode=False)
 PATH = '../data/mp4/'
 MAX_N_REQUESTS = 1000
 FPS = 30
+COMPRESS_RATIO = 1
+MS_TO_SEC = 1000
+LENGTH_HISTOGRAM = 24
 
+
+def create_index():
+    # NxD matrix
+    histo_video = []
+    
+    # Index i, v, t of length N
+    index= []
+    print('creating index')
+    count = 0
+    start = time.perf_counter()
+    for v, filename in enumerate(os.listdir(PATH)):
+        video, _, _ = torchvision.io.read_video(PATH + filename)
+        for t in range(0, len(video), COMPRESS_RATIO):
+            image = video[t].transpose(0, 2).type(dtype=torch.float32)
+            histo_r, _ = torch.histogram(image[0], range=[0, 255], bins=8)
+            histo_g, _ = torch.histogram(image[1], range=[0, 255], bins=8)
+            histo_b, _ = torch.histogram(image[2], range=[0, 255], bins=8)
+            histo_image = torch.cat((histo_r, histo_g, histo_b), 0)
+            histo_video.append(histo_image)
+            index.append([count, v+1, t])
+            count += 1        
+    end = time.perf_counter()
+    print('index created')
+    return index, histo_video, end-start
 
 def create_video_descriptor(filename: str):
-    video, _, _ = torchvision.io.read_video(filename)
-    histo_video = []
-    for image in video:
-        image = image.transpose(0, 2).type(dtype=torch.float32)
+    
+    start = time.perf_counter()
+    for idx in range(0, len(videos), COMPRESS_RATIO):
+        image = video[idx].transpose(0, 2).type(dtype=torch.float32)
         histo_r, _ = torch.histogram(image[0], range=[0, 255], bins=8)
         histo_g, _ = torch.histogram(image[1], range=[0, 255], bins=8)
         histo_b, _ = torch.histogram(image[2], range=[0, 255], bins=8)
         histo_image = torch.cat((histo_r, histo_g, histo_b), 0)
         histo_video.append(histo_image)
-    return histo_video
+    end = time.perf_counter()
+    return end-start, histo_video
 
 
 def read_descriptor():
@@ -40,9 +71,14 @@ def read_descriptor():
 
 def create_db_descriptor():
     histo_db = []
+    indexing_time = 0
     for filename in os.listdir(PATH):
-        histo_db.append(create_video_descriptor(PATH + filename))
-    return histo_db
+        time, video_desc = create_video_descriptor(PATH+filename) 
+        indexing_time += time
+        histo_db.append(video_desc)    
+    # We take 1 out of every COMPRESSION_RATIO number of frames
+    compression_rate = 1 - (1/COMPRESS_RATIO) / 1 
+    return indexing_time, compression_rate, histo_db
 
 
 def len_videos():
@@ -75,7 +111,6 @@ def create_histogram_single_image(filepath: str):
     histo_b, _ = torch.histogram(image[2], range=[0, 255], bins=8)
     return torch.cat((histo_r, histo_g, histo_b), 0)
 
-
 def create_requests(n_requests=5):
     assert n_requests <= MAX_N_REQUESTS
     requests = []
@@ -86,35 +121,63 @@ def create_requests(n_requests=5):
             break
     return requests
 
+def cosine_sim(tensor1: torch.Tensor, tensor2: torch.Tensor) -> float:
+    numerator = torch.dot(tensor1, tensor2)
+    denominator = torch.sqrt(torch.sum(torch.square(tensor1))) * torch.sqrt(torch.sum(torch.square(tensor2)))
+    return numerator/denominator
+
+def euclidean_distance(tensor1: torch.Tensor, tensor2: torch.Tensor):
+    return math.sqrt(torch.sum(torch.square(tensor1 - tensor2)))
 
 if __name__ == '__main__':
-    descriptor = read_descriptor()
     length_videos = create_dict_videos()
-    print('Initialize requests')
-    requests = create_requests()
-    print('request ready')
-    path = '../data/jpeg/'
-    image_id = [-1] * len(requests)
-    for i, req in enumerate(requests):
-        for idx, histogram in enumerate(descriptor):
-            euclidean_dist = math.sqrt(
-                torch.sum(torch.square(histogram - req)))
-            if euclidean_dist < 35000:
-                image_id[i] = idx
-                break
-    with open('answer.txt', 'w') as answer_file:
+    requests = create_requests(MAX_N_REQUESTS)
+    index, descriptor, indexing_time = create_index() 
+    print(f'Indexing time: {indexing_time}')
+    #print(f'Compression rate: {compression_rate}')
+    
+    image_id = [(-1,-1)] * len(requests)
+    start = time.perf_counter()
+    with open('answer.csv', 'w') as answer_file:
         answer_file.write('image,video_pred,minutage_pred\n')
-        for j, im_id in enumerate(image_id):
-            time = 0
-            minuting = -1
-            for video_id, n_image in length_videos.items():
-                time += n_image
-                if im_id <= time:
-                    minuting = (n_image - (time - im_id)) / FPS
-                    if minuting > 0:
-                        answer_file.write(
-                            'i{req:03d},v{id:03d},{min:05f}\n'.format(
-                                req=j, id=video_id, min=minuting))
-                    else:
-                        answer_file.write('i{req:03d},out,\n'.format(req=j))
+        for idx, req in enumerate(requests):
+            for jdx, histogram in enumerate(descriptor): 
+                cosine_similarity = cosine_sim(histogram, req)
+                #euclidean_dist = euclidean_distance(histogram, req)
+                #if euclidean_dist < 50000:
+                #    image_id[i] = idx * COMPRESS_RATIO
+                #    break
+
+                if cosine_similarity > 0.95:
+                        if index[jdx][1] >= 1:
+                            answer_file.write(
+                                'i{req:03d},v{id:03d},{min:05f}\n'.format(
+                                    req=idx, id=index[jdx][1], min=index[jdx][2]/FPS))
+                            break
+                elif cosine_similarity <= 0.95 and jdx == (len(descriptor)-1):
+                    answer_file.write('i{req:03d},out,\n'.format(req=idx))
                     break
+                    
+    end = time.perf_counter() 
+    print(f'Search time by image: {(end-start)/len(requests)} ms')
+
+            
+    
+    #with open('answer.csv', 'w') as answer_file:
+    #    answer_file.write('image,video_pred,minutage_pred\n')
+    #    for j, im_id in enumerate(image_id): ## 0 -> 1000
+    #        timing = 0
+    #        minuting = -1
+    #        for video_id, n_image in length_videos.items(): ## 1 -> 100
+    #            timing += n_image
+    #            if im_id <= timing:
+    #                minuting = (n_image - (timing - im_id)) / FPS
+    #                if minuting >= 0:
+    #                    answer_file.write(
+    #                        'i{req:03d},v{id:03d},{min:05f}\n'.format(
+    #                            req=j, id=video_id, min=minuting))
+    #                    break
+    #                else:
+    #                    answer_file.write('i{req:03d},out,\n'.format(req=j))
+    #                    break
+    #            
