@@ -1,4 +1,9 @@
+# Code modifié de Mehdi Miah
+
+import os
+
 import torch
+import torchvision
 import torchvision.transforms as transforms
 import torchvision.models as models
 
@@ -8,21 +13,19 @@ from IPython.display import display
 import matplotlib.pyplot as plt
 
 
+PATH = '../data/'
+
+
 ### Read images
 def process_image():
     image = []
     return image
 
 
-if __name__ == '__main__':
-    image = process_image()
-    ### Charger Modele
-    model = models.resnet18(weights=models.ResNet18_Weights.DEFAULT)   # le modèle est chargé avec des poids pré-entrainés sur ImageNet
-    model = torch.nn.Sequential(*(list(model.children())[:-1]))        # supprime la dernière couche du réseau
-    model.eval();  
+def calculate_descriptor(model, image):
     # Pré-processing
     preprocess = transforms.Compose([
-       transforms.Resize((224, 224)),                       # change la taille de l'image en 224x224
+        transforms.Resize((224, 224)),                       # change la taille de l'image en 224x224
         transforms.ToTensor(),                              # convertit une image PIL ou numpy.ndarray (HxWxC) dans la plage [0, 255] en un torch.FloatTensor de forme (CxHxW) dans la plage [0.0, 1.0]
         transforms.Normalize(mean=[0.485, 0.456, 0.406],    # normalise les valeurs 
                              std=[0.229, 0.224, 0.225]),
@@ -30,6 +33,7 @@ if __name__ == '__main__':
 
     input_tensor = preprocess(image)         # 3 x 224 x 224
     input_batch = input_tensor.unsqueeze(0)  # Ajout d'une dimension de batch : 1 x 3 x 224 x 224
+    input_batch = input_batch.to(device)
     # Calcul du descripteur
     with torch.no_grad():
         output = model(input_batch)  # 1 x 512 x 1 x 1 
@@ -40,7 +44,24 @@ if __name__ == '__main__':
 
     output = rearrange(output, 'b d h w -> (b d h w)')  # 512
 
-    # Visualisation
-    plt.plot(output)
-    plt.title(f"Descripteur d'une image à l'aide de ResNet-18")
-    plt.show()
+    return output
+
+
+if __name__ == '__main__':
+    ### Utiliser GPU si disponible, sinon CPU
+    device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+
+    ### Charger Modele
+    model = models.resnet18(weights=models.ResNet18_Weights.DEFAULT)   # le modèle est chargé avec des poids pré-entrainés sur ImageNet
+    model = torch.nn.Sequential(*(list(model.children())[:-1]))        # supprime la dernière couche du réseau
+    model.eval()
+    model.to(device)
+
+    with open('nn_descriptors.csv', 'w') as f:
+        f.write('filename, descriptor\n')
+
+        for i, filename in enumerate(os.listdir(PATH + 'jpeg')):
+            image = Image.open(PATH + 'jpeg/' + filename)
+            descriptor = calculate_descriptor(model, image)
+            f.write('{file}, {desc}\n'.format(file=filename, desc=descriptor.cpu().numpy()))
+        
