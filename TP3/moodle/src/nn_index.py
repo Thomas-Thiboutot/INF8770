@@ -83,7 +83,9 @@ if __name__ == '__main__':
         write_descriptors_to_csv(model)
 
     start = time.perf_counter()
-    calculate_video_descriptors(model, PATH + 'mp4/v001.mp4')
+    for filename in os.listdir(PATH + 'mp4'):
+        print("Calculating descriptors for video: ", filename)
+        calculate_video_descriptors(model, PATH + 'mp4/' + filename)
     end = time.perf_counter()
 
     print(f'Processing time: {end - start} s')
