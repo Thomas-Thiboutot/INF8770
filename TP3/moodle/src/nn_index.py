@@ -1,5 +1,3 @@
-# Code modifié de Mehdi Miah
-
 import os
 import time
 
@@ -11,16 +9,14 @@ import torchvision.models as models
 from PIL import Image
 from einops import rearrange
 import cv2
+from numpy import savetxt, loadtxt
+import argparse
 
 PATH = '../data/'
+COMPRESS_RATIO = 1
 
 
-### Read images
-def process_image():
-    image = []
-    return image
-
-
+# Fonction issue du code modifié de Mehdi Miah
 def calculate_img_descriptor(model, image):
     # Pré-processing
     preprocess = transforms.Compose([
@@ -45,31 +41,94 @@ def calculate_img_descriptor(model, image):
 
     return output
 
+
 def calculate_video_descriptors(model, path):
     video = cv2.VideoCapture(path)
     descriptors = []
+
+    i = 0
     while video.isOpened():
         ret, frame = video.read()
         if not ret:
             break
-        descriptors.append(calculate_img_descriptor(model, Image.fromarray(frame)))
+
+        if i == 0: 
+            descriptors.append(calculate_img_descriptor(model, Image.fromarray(frame)).cpu().numpy())
+
+        i = (i + 1) % COMPRESS_RATIO
 
     return descriptors
     
 
-def write_descriptors_to_csv(model):
-    with open('nn_descriptors.csv', 'w') as f:
-        f.write('filename, descriptor\n')
+def write_descriptors_to_txt(model):
+    descriptors = []
 
-        for i, filename in enumerate(os.listdir(PATH + 'jpeg')):
-            image = Image.open(PATH + 'jpeg/' + filename)
-            descriptor = calculate_img_descriptor(model, image)
-            f.write('{file}, {desc}\n'.format(file=filename, desc=descriptor.cpu().numpy()))
+    for filename in os.listdir(PATH + 'jpeg'):
+        print("Calcul du descripteur pour l'image:", filename, end='\r')
+        image = Image.open(PATH + 'jpeg/' + filename)
+        descriptor = calculate_img_descriptor(model, image)
+        descriptors.append(descriptor.cpu().numpy())
+    print()
+    
+    savetxt(PATH + 'nn/nn_descriptors.txt', descriptors)
+            
+    return
+
+
+def write_video_descriptors_to_txt(model):
+    for filename in os.listdir(PATH + 'mp4'):
+        print("Calcul des descripteurs pour la vidéo:", filename, end='\r')
+        descriptors = calculate_video_descriptors(model, PATH + 'mp4/' + filename)
+        savetxt(PATH + 'nn/videos/' + filename, descriptors)
+    print()
 
     return
 
 
+def load_video_descriptors(folder_path):
+    video_descriptors = []
+
+    for filename in os.listdir(folder_path):
+        video_descriptors.append(loadtxt(folder_path + '/' + filename))
+
+    return video_descriptors
+
+
+def create_index(re_index: bool):
+    if not os.path.exists(PATH + 'nn/nn_descriptors.txt') or re_index:
+        print("Écriture des descripteurs du réseau de neuronnes dans nn_descriptors.txt...")
+        start = time.perf_counter()
+        write_descriptors_to_txt(model)
+        end = time.perf_counter()
+        print("Écriture complétée des descripteurs d'image en", end - start, 's.')
+
+    else:
+        print("Les descripteurs d'images du réseau de neuronnes existent déjà.")
+
+    image_descriptors = loadtxt(PATH + 'nn/nn_descriptors.txt')
+    assert len(os.listdir(PATH + 'jpeg')) == len(image_descriptors)
+
+    if not len(os.listdir(PATH + 'mp4')) == len(os.listdir(PATH + 'nn/videos')) or re_index:
+        print("Écritures des descripteurs des vidéos...")
+        start = time.perf_counter()
+        write_video_descriptors_to_txt(model)
+        end = time.perf_counter()
+        print("Écriture complétée des descripteurs des vidéos en", end - start, 's')
+    else:
+        print("Les descripteurs de vidéos du réseau de neuronnes existent déjà.")
+
+    video_descriptors = load_video_descriptors(PATH + 'nn/videos')
+    assert len(os.listdir(PATH + 'mp4')) == len(video_descriptors)
+
+    return image_descriptors, video_descriptors
+
+
 if __name__ == '__main__':
+    parser = argparse.ArgumentParser()
+    parser.add_argument('-i', action='store_true', help="Effectue l'indexation peut importe s'il y a déjà des descripteurs")
+
+    args = parser.parse_args()
+
     ### Utiliser GPU si disponible, sinon CPU
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
@@ -79,13 +138,14 @@ if __name__ == '__main__':
     model.eval()
     model.to(device)
 
-    if not os.path.exists('nn_descriptors.csv'):
-        write_descriptors_to_csv(model)
-
+    ### Phase d'indexation: chargement des descripteurs
+    print("Phase d'indexation: chargement des descripteurs...")
     start = time.perf_counter()
-    for filename in os.listdir(PATH + 'mp4'):
-        print("Calculating descriptors for video: ", filename)
-        calculate_video_descriptors(model, PATH + 'mp4/' + filename)
+    image_descriptors, video_descriptors = create_index(args.i)
     end = time.perf_counter()
+    print("Phase d'indexation terminée en:", end - start, 's')
 
-    print(f'Processing time: {end - start} s')
+    ### Phase de recherche
+    start = time.perf_counter()
+    
+    end = time.perf_counter()
