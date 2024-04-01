@@ -100,7 +100,7 @@ def create_index(re_index: bool):
         start = time.perf_counter()
         write_descriptors_to_txt(model)
         end = time.perf_counter()
-        print("Écriture complétée des descripteurs d'image en", end - start, 's.')
+        print("Écriture complétée des descripteurs d'image en", end - start, 'secondes.')
 
     else:
         print("Les descripteurs d'images du réseau de neuronnes existent déjà.")
@@ -113,7 +113,7 @@ def create_index(re_index: bool):
         start = time.perf_counter()
         write_video_descriptors_to_txt(model)
         end = time.perf_counter()
-        print("Écriture complétée des descripteurs des vidéos en", end - start, 's')
+        print("Écriture complétée des descripteurs des vidéos en", end - start, 'secondes')
     else:
         print("Les descripteurs de vidéos du réseau de neuronnes existent déjà.")
 
@@ -143,7 +143,7 @@ if __name__ == '__main__':
     start = time.perf_counter()
     image_descriptors, video_descriptors = create_index(args.i)
     end = time.perf_counter()
-    print("Phase d'indexation terminée en:", end - start, 's')
+    print("Phase d'indexation terminée en:", end - start, 'secondes')
 
     ### Phase de recherche
     start = time.perf_counter()
