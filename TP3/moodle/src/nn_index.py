@@ -79,7 +79,7 @@ def write_video_descriptors_to_txt(model):
     for filename in os.listdir(PATH + 'mp4'):
         print("Calcul des descripteurs pour la vidéo:", filename, end='\r')
         descriptors = calculate_video_descriptors(model, PATH + 'mp4/' + filename)
-        savetxt(PATH + 'nn/videos/' + filename, descriptors)
+        savetxt(PATH + 'nn/videos/' + filename + '.txt', descriptors)
     print()
 
     return
