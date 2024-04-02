@@ -166,7 +166,7 @@ def find_video(image_descriptor, video_descriptors):
         for i, descriptor in enumerate(descriptors):
             similarity = cosine_sim(descriptor, image_descriptor)
 
-            if similarity >= 0.87:
+            if similarity >= 0.86:
                 return (video_name, i * COMPRESS_RATIO / FPS )
                 
     return ('out', '')
@@ -199,12 +199,11 @@ if __name__ == '__main__':
     print("Début de la phase de recherche")
     start = time.perf_counter()
     with open('nn_answer.csv', 'w') as answers:
+        answers.write('image,video_pred,minutage_pred\n')
         for idx, image_descriptor in enumerate(image_descriptors):
             print("Image:", image_names[idx], end='\r')
             result = find_video(image_descriptor, video_descriptors)
             answers.write('{i},{v},{t}\n'.format(i=image_names[idx], v=result[0], t=result[1]))
-            if (idx == 3):
-                break
         print()
     end = time.perf_counter()
 
