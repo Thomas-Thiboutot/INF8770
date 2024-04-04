@@ -14,7 +14,7 @@ from numpy.linalg import norm
 import argparse
 
 PATH = '../data/'
-COMPRESS_RATIO = 1
+COMPRESS_RATIO = 4
 FPS = 30  # Trames/s 
 
 
@@ -89,21 +89,6 @@ def generate_video_descriptors(model):
 
     return video_descriptors
 
-def write_video_descriptors_to_txt(video_descriptors: list[tuple[str, list]]):
-    for video_descriptor in video_descriptors:
-        savetxt(PATH + 'nn/videos/' + video_descriptor[0] + '.txt', video_descriptor[1])
-
-    return
-
-
-def load_video_descriptors(folder_path):
-    video_descriptors = []
-
-    for filename in os.listdir(folder_path):
-        video_descriptors.append((filename, loadtxt(folder_path + '/' + filename)))
-
-    return video_descriptors
-
 
 def create_index(re_index: bool, no_save: bool):
     image_descriptors = []
@@ -111,9 +96,6 @@ def create_index(re_index: bool, no_save: bool):
     image_names = []
 
     ### Chargement des descripteurs d'image
-    if not os.path.exists(PATH + 'nn'):
-        os.makedirs(PATH + 'nn')
-
     if not os.path.exists(PATH + 'nn/nn_descriptors.txt') or re_index:
         print("Calcul des descripteurs d'images")
         start = time.perf_counter()
@@ -137,20 +119,11 @@ def create_index(re_index: bool, no_save: bool):
     if not os.path.exists(PATH + 'nn/videos'):
         os.makedirs(PATH + 'nn/videos')
 
-    if not len(os.listdir(PATH + 'mp4')) == len(os.listdir(PATH + 'nn/videos')) or re_index:
-        print("Calcul des descripteurs des vidéos:")
-        start = time.perf_counter()
-        video_descriptors = generate_video_descriptors(model)
-        end = time.perf_counter()
-        print("Calcul des descripteurs des vidéos terminé en", end - start, "secondes.")
-
-        if no_save:
-            print("Écritures des descripteurs des vidéos...")
-            write_video_descriptors_to_txt(video_descriptors)
-            print("Écriture complétée.")
-    else:
-        print("Les descripteurs de vidéos du réseau de neuronnes existent déjà.")
-        video_descriptors = load_video_descriptors(PATH + 'nn/videos')
+    print("Calcul des descripteurs des vidéos:")
+    start = time.perf_counter()
+    video_descriptors = generate_video_descriptors(model)
+    end = time.perf_counter()
+    print("Calcul des descripteurs des vidéos terminé en", end - start, "secondes.")
     
     assert len(os.listdir(PATH + 'mp4')) == len(video_descriptors)
 
@@ -166,7 +139,7 @@ def find_video(image_descriptor, video_descriptors):
         for i, descriptor in enumerate(descriptors):
             similarity = cosine_sim(descriptor, image_descriptor)
 
-            if similarity >= 0.86:
+            if similarity >= 0.83:
                 return (video_name, i * COMPRESS_RATIO / FPS )
                 
     return ('out', '')
